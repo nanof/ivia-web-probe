@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ivia · prueba web</title>
+<style>
+  body { font: 15px/1.45 system-ui, sans-serif; max-width: 760px; margin: 24px auto; padding: 0 16px; color: #1c1c1e; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  p.lead { color: #555; margin: 0 0 16px; }
+  fieldset { border: 1px solid #ccc; border-radius: 8px; margin: 0 0 14px; padding: 10px 14px; }
+  legend { font-weight: 600; padding: 0 6px; }
+  label { display: inline-block; margin: 4px 12px 4px 0; }
+  input[type=password], select { padding: 5px 8px; }
+  input[type=password] { width: 300px; }
+  button { padding: 7px 14px; border-radius: 6px; border: 1px solid #888; background: #f4f4f4; cursor: pointer; }
+  button.primary { background: #1f6feb; color: #fff; border-color: #1f6feb; }
+  button:disabled { opacity: .5; cursor: default; }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  table { border-collapse: collapse; width: 100%; }
+  td { padding: 3px 8px; border-bottom: 1px solid #eee; vertical-align: top; }
+  td:first-child { width: 40%; color: #555; }
+  .ok { color: #1a7f37; font-weight: 600; }
+  .bad { color: #cf222e; font-weight: 600; }
+  .warn { color: #9a6700; font-weight: 600; }
+  #meter { height: 8px; background: #eee; border-radius: 4px; overflow: hidden; margin-top: 6px; }
+  #meter div { height: 100%; width: 0; background: #1a7f37; transition: width .08s; }
+  #log { font: 12px/1.4 ui-monospace, Consolas, monospace; color: #555; max-height: 160px; overflow: auto; white-space: pre-wrap; }
+  #progress { display: flex; gap: 6px; margin: 0 0 14px; }
+  #progress div { flex: 1; padding: 6px 8px; border-radius: 6px; background: #eee; color: #666; font-size: 13px; text-align: center; }
+  #progress div.done { background: #dff3e4; color: #1a7f37; }
+  #progress div.now { background: #1f6feb; color: #fff; font-weight: 600; }
+  section.panel { display: none; border: 1px solid #ccc; border-radius: 8px; padding: 16px 18px; }
+  section.panel.show { display: block; }
+  section.panel h2 { font-size: 18px; margin: 0 0 8px; }
+  .nav { display: flex; gap: 8px; margin-top: 16px; justify-content: space-between; flex-wrap: wrap; }
+  .nav .right { display: flex; gap: 8px; flex-wrap: wrap; }
+  .big { padding: 10px 20px; font-size: 16px; }
+  .status { margin: 10px 0 0; padding: 8px 12px; border-radius: 6px; background: #f4f4f4; }
+  .status.ok { background: #dff3e4; }
+  .status.warn { background: #fff4d6; }
+  .status.bad { background: #fde2e4; }
+  details { margin-top: 12px; }
+  summary { cursor: pointer; color: #555; }
+</style>
+</head>
+<body>
+<h1>ivia · prueba de captura web</h1>
+<p class="lead">Comprueba si este navegador puede capturar el audio de una llamada, sin instalar nada. Son 4 pasos y unos 3 minutos. No guarda ni envía nada: todo ocurre en esta pestaña.</p>
+
+<div id="progress">
+  <div id="pg1">1 · Pruebas automáticas</div>
+  <div id="pg2">2 · Preparar sonido</div>
+  <div id="pg3">3 · Capturar audio</div>
+  <div id="pg4">4 · Resultados</div>
+</div>
+
+<section class="panel show" id="p1">
+  <h2>Paso 1 de 4 · Pruebas automáticas</h2>
+  <p style="margin:0 0 8px;color:#555">Se ejecutan solas. Espera unos segundos a que termine la lista.</p>
+  <div class="row">
+    <b id="verdict">Ejecutando…</b>
+    <button id="rerun">Repetir pruebas</button>
+  </div>
+  <table id="auto" style="margin-top:6px"></table>
+  <div class="nav">
+    <span></span>
+    <div class="right"><button id="next1" class="primary big" disabled>Continuar</button></div>
+  </div>
+</section>
+
+<section class="panel" id="p2">
+  <h2>Paso 2 de 4 · Prepara algo que suene</h2>
+  <p>Abre <b>en otra pestaña</b> algo con sonido, por ejemplo un vídeo de YouTube, o una reunión de Teams o Meet en la que se oiga a alguien. Déjalo reproduciéndose.</p>
+  <p>Cuando lo tengas, vuelve a esta pestaña y continúa.</p>
+  <div class="nav">
+    <button id="back2">Atrás</button>
+    <div class="right"><button id="next2" class="primary big">Ya lo tengo, continuar</button></div>
+  </div>
+</section>
+
+<section class="panel" id="p3">
+  <h2>Paso 3 de 4 · Captura el audio</h2>
+  <ol style="margin:0 0 10px;padding-left:20px">
+    <li>Pulsa <b>«Capturar pestaña / pantalla»</b>.</li>
+    <li>En el selector del navegador elige la pestaña con sonido (o <b>toda la pantalla</b>) y marca <b>«Compartir audio»</b>.</li>
+    <li>Espera unos 10 segundos con el audio sonando. La barra verde debe moverse.</li>
+  </ol>
+  <div class="row">
+    <button id="startDisplay" class="primary big">Capturar pestaña / pantalla</button>
+    <button id="stop" disabled>Parar</button>
+  </div>
+  <div id="meter"><div></div></div>
+  <div class="status" id="capStatus">Aún no has empezado.</div>
+  <details>
+    <summary>Probar con el micrófono (opcional)</summary>
+    <div class="row" style="margin-top:8px">
+      <label>Micrófono <select id="mic" style="max-width:360px"></select></label>
+      <button id="refreshMics" title="Volver a listar (pide permiso para ver los nombres)">Actualizar lista</button>
+      <button id="startMic">Usar micrófono</button>
+    </div>
+  </details>
+  <div class="nav">
+    <button id="back3">Atrás</button>
+    <div class="right">
+      <button id="skip3" title="Si el selector no ofrece compartir audio, también es un resultado válido">No me deja compartir audio</button>
+      <button id="next3" class="primary big" disabled>Ver resultados</button>
+    </div>
+  </div>
+</section>
+
+<section class="panel" id="p4">
+  <h2>Paso 4 de 4 · Resultados</h2>
+  <p style="margin:0 0 8px">Resultado: <b id="verdict2">…</b></p>
+  <div class="row">
+    <button id="copy" class="primary big">Copiar resultados</button>
+    <span id="copyState" style="color:#555"></span>
+  </div>
+  <p style="margin:8px 0 4px;color:#555">Pega lo copiado en un mensaje y envíaselo a quien te pidió la prueba. Si no se copia solo, selecciona este texto y usa Ctrl+C:</p>
+  <textarea id="report" readonly rows="14" style="width:100%;font:12px ui-monospace,Consolas,monospace"></textarea>
+  <details>
+    <summary>Detalles técnicos y registro</summary>
+    <table id="diag"></table>
+    <div id="log"></div>
+  </details>
+  <div class="nav">
+    <button id="back4">Atrás</button>
+    <div class="right"><button id="again">Empezar de nuevo</button></div>
+  </div>
+</section>
+
+<script>
+const $ = (id) => document.getElementById(id)
+const diag = new Map()
+const state = { stream: null, context: null, node: null, chunks: 0, bytes: 0, maxRms: 0 }
+
+function setDiag(name, value, kind) {
+  diag.set(name, { value, kind })
+  $('diag').innerHTML = [...diag].map(([k, v]) =>
+    `<tr><td>${k}</td><td class="${v.kind || ''}">${String(v.value).replace(/</g, '&lt;')}</td></tr>`).join('')
+}
+function log(text) {
+  const line = `${new Date().toLocaleTimeString()}  ${text}`
+  $('log').textContent += line + '\n'
+  $('log').scrollTop = $('log').scrollHeight
+}
+
+function staticChecks() {
+  setDiag('Navegador', navigator.userAgent.replace(/^Mozilla\/5.0 /, ''))
+  setDiag('Contexto seguro (https/localhost/file)', window.isSecureContext, window.isSecureContext ? 'ok' : 'bad')
+  const hasDisplay = !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia)
+  setDiag('getDisplayMedia disponible', hasDisplay, hasDisplay ? 'ok' : 'bad')
+  const hasMic = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)
+  setDiag('getUserMedia (micrófono) disponible', hasMic, hasMic ? 'ok' : 'bad')
+  setDiag('AudioWorklet disponible', !!window.AudioWorkletNode, window.AudioWorkletNode ? 'ok' : 'bad')
+  setDiag('Documento Picture-in-Picture (ventana flotante)', 'documentPictureInPicture' in window, 'documentPictureInPicture' in window ? 'ok' : 'warn')
+}
+
+const WORKLET = `
+class PcmProcessor extends AudioWorkletProcessor {
+  constructor() { super(); this.out = new Int16Array(1280); this.i = 0; this.offset = 0 }
+  process(inputs) {
+    const ch = inputs[0]
+    if (!ch || !ch.length || !ch[0] || !ch[0].length) return true
+    const n = ch[0].length, mixed = new Float32Array(n)
+    for (const c of ch) for (let k = 0; k < n; k++) mixed[k] += (c[k] || 0) / ch.length
+    const ratio = sampleRate / 16000
+    let pos = this.offset
+    while (pos < n) {
+      const idx = Math.floor(pos), frac = pos - idx
+      const s0 = mixed[idx] || 0, s1 = idx + 1 < n ? mixed[idx + 1] : s0
+      const s = Math.max(-1, Math.min(1, s0 + (s1 - s0) * frac))
+      this.out[this.i++] = s < 0 ? s * 0x8000 : s * 0x7fff
+      if (this.i === this.out.length) {
+        let sum = 0
+        for (let k = 0; k < this.out.length; k++) { const v = this.out[k] / 32768; sum += v * v }
+        const copy = this.out.slice()
+        this.port.postMessage({ pcm: copy.buffer, rms: Math.sqrt(sum / this.out.length) }, [copy.buffer])
+        this.out = new Int16Array(1280); this.i = 0
+      }
+      pos += ratio
+    }
+    this.offset = pos - n
+    return true
+  }
+}
+registerProcessor('pcm-processor', PcmProcessor)`
+
+async function start(mode) {
+  await stop()
+  state.chunks = 0; state.bytes = 0
+  try {
+    if (mode === 'display') {
+      state.stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true })
+    } else {
+      const id = $('mic').value
+      state.stream = await navigator.mediaDevices.getUserMedia({ audio: id ? { deviceId: { exact: id } } : true })
+      listMics()
+    }
+  } catch (e) {
+    setDiag('Captura', `${e.name}: ${e.message}`, 'bad'); log('captura falló: ' + e)
+    setAuto('Captura real de audio', 'bad', e.name === 'NotAllowedError' ? 'cancelado o bloqueado por el navegador/política' : `${e.name}: ${e.message}`)
+    return
+  }
+  const audio = state.stream.getAudioTracks()
+  const video = state.stream.getVideoTracks()[0]
+  const surface = video ? video.getSettings().displaySurface : 'micrófono'
+  setDiag('Fuente elegida', mode === 'mic' ? 'micrófono: ' + (audio[0] ? audio[0].label : '?') : (surface || 'desconocida'))
+  if (audio.length === 0) {
+    setDiag('Pista de audio', 'NINGUNA: no se marcó «Compartir audio» o el navegador/política no lo permite', 'bad')
+    log('Sin pista de audio')
+    setAuto('Captura real de audio', 'bad', 'el navegador no entregó audio: no se marcó «Compartir audio» o la política lo impide')
+    state.stream.getTracks().forEach((t) => t.stop()); state.stream = null
+    return
+  }
+  setDiag('Pista de audio', audio[0].label || 'sí', 'ok')
+  if (video) video.addEventListener('ended', stop)
+  audio[0].addEventListener('ended', stop)
+
+  state.context = new AudioContext()
+  await state.context.resume()
+  const url = URL.createObjectURL(new Blob([WORKLET], { type: 'text/javascript' }))
+  try { await state.context.audioWorklet.addModule(url) } finally { URL.revokeObjectURL(url) }
+  state.node = new AudioWorkletNode(state.context, 'pcm-processor')
+  state.context.createMediaStreamSource(new MediaStream(audio)).connect(state.node)
+
+
+  state.node.port.onmessage = (e) => {
+    state.chunks++; state.bytes += e.data.pcm.byteLength
+    state.maxRms = Math.max(state.maxRms || 0, e.data.rms)
+    $('meter').firstElementChild.style.width = Math.min(100, e.data.rms * 400) + '%'
+    if (state.chunks % 25 === 0) setDiag('Audio enviado', `${(state.bytes / 1024).toFixed(0)} KB`, 'ok')
+  }
+  $('stop').disabled = false
+  log('capturando (' + mode + ')')
+  // Autoevaluación: a los 6 s debe haber audio con señal y, si hubo voz, resultados.
+  state.maxRms = 0
+  const session = state.node
+  setAuto('Captura real de audio', 'info', 'comprobando…')
+  setTimeout(() => {
+    if (state.node !== session) return
+    if (state.chunks === 0) setAuto('Captura real de audio', 'bad', 'la pista no entrega audio')
+    else if (state.maxRms < 0.005) setAuto('Captura real de audio', 'warn', 'la pista está en silencio: ¿suena algo en la fuente elegida?')
+    else setAuto('Captura real de audio', 'ok', `señal detectada (nivel ${state.maxRms.toFixed(3)})`)
+  }, 6000)
+}
+
+async function stop() {
+  if (state.node) { state.node.port.onmessage = null; state.node.disconnect(); state.node = null }
+  if (state.context) { await state.context.close().catch(() => {}); state.context = null }
+  if (state.stream) { state.stream.getTracks().forEach((t) => t.stop()); state.stream = null }
+  $('meter').firstElementChild.style.width = '0'
+  $('stop').disabled = true
+}
+
+async function listMics() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return
+  const previous = $('mic').value
+  const devices = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === 'audioinput')
+  const select = $('mic')
+  select.innerHTML = ''
+  const auto = document.createElement('option')
+  auto.value = ''; auto.textContent = 'Predeterminado del sistema'
+  select.appendChild(auto)
+  devices.forEach((d, i) => {
+    const o = document.createElement('option')
+    o.value = d.deviceId; o.textContent = d.label || `Micrófono ${i + 1} (sin nombre hasta dar permiso)`
+    select.appendChild(o)
+  })
+  if ([...select.options].some((o) => o.value === previous)) select.value = previous
+  setDiag('Micrófonos detectados', devices.length ? devices.map((d) => d.label || '(sin nombre)').join(' | ') : 'ninguno', devices.length ? 'ok' : 'warn')
+}
+
+async function refreshMics() {
+  try {
+    const probe = await navigator.mediaDevices.getUserMedia({ audio: true })
+    probe.getTracks().forEach((t) => t.stop())
+  } catch (e) { log('permiso de micrófono: ' + e.name) }
+  await listMics()
+}
+
+function buildReport() {
+  const rows = [...diag].map(([k, v]) => `${k}: ${v.value}`).join('\n')
+  return [
+    'ivia · prueba web — ' + new Date().toISOString(),
+    'URL: ' + location.protocol + '//' + (location.host || '(archivo local)'),
+    '',
+    '== Veredicto: ' + $('verdict').textContent + ' ==',
+    ...[...auto].map(([k, v]) => `[${ICON[v.status]}] ${k}${v.detail ? ' · ' + v.detail : ''}`),
+    '', '== Diagnóstico ==', rows,
+    '', '== Registro ==', $('log').textContent.trim() || '(vacío)'
+  ].join('\n')
+}
+
+$('copy').onclick = async () => {
+  const text = buildReport()
+  $('report').value = text
+  try {
+    await navigator.clipboard.writeText(text)
+    $('copyState').textContent = 'Copiado. Pégalo en un mensaje.'
+  } catch {
+    $('report').focus(); $('report').select()
+    const ok = document.execCommand && document.execCommand('copy')
+    $('copyState').textContent = ok ? 'Copiado. Pégalo en un mensaje.' : 'No se pudo copiar solo: el texto está seleccionado, usa Ctrl+C.'
+  }
+}
+// El informe se mantiene al día solo, para verlo sin pulsar nada.
+setInterval(() => {
+  if (document.activeElement === $('report')) return
+  const text = buildReport().replace(/^ivia · prueba web — .*$/m, 'ivia · prueba web')
+  if ($('report').dataset.last !== text) { $('report').dataset.last = text; $('report').value = buildReport() }
+}, 1000)
+$('refreshMics').onclick = refreshMics
+if (navigator.mediaDevices) navigator.mediaDevices.addEventListener('devicechange', listMics)
+
+$('startDisplay').onclick = () => start('display')
+$('startMic').onclick = () => start('mic')
+$('stop').onclick = stop
+// ---------- Pruebas automáticas (sin gestos del usuario) ----------
+const auto = new Map()
+const ICON = { ok: 'OK', warn: 'AVISO', bad: 'FALLA', info: 'INFO' }
+function setAuto(name, status, detail) {
+  auto.set(name, { status, detail: detail || '' })
+  $('auto').innerHTML = [...auto].map(([k, v]) =>
+    `<tr><td>${k}</td><td class="${v.status === 'info' ? '' : v.status}">${ICON[v.status]}${v.detail ? ' · ' + String(v.detail).replace(/</g, '&lt;') : ''}</td></tr>`).join('')
+  const bad = [...auto.values()].filter((v) => v.status === 'bad').length
+  const warn = [...auto.values()].filter((v) => v.status === 'warn').length
+  $('verdict').textContent = bad ? `${bad} requisito(s) NO se cumplen` : warn ? `Cumple lo esencial, ${warn} aviso(s)` : 'Todo correcto'
+  $('verdict').className = bad ? 'bad' : warn ? 'warn' : 'ok'
+}
+
+async function step(name, fn) {
+  try {
+    const r = await fn()
+    setAuto(name, r.status || 'ok', r.detail)
+  } catch (e) {
+    setAuto(name, 'bad', `${e.name}: ${e.message}`)
+  }
+}
+
+function timeoutSignal(ms) {
+  const c = new AbortController()
+  setTimeout(() => c.abort(), ms)
+  return c.signal
+}
+
+async function reach(url) {
+  const t0 = performance.now()
+  try {
+    // no-cors: basta con que el servidor conteste; así se distingue "bloqueado" de "alcanzable".
+    await fetch(url, { mode: 'no-cors', cache: 'no-store', signal: timeoutSignal(7000) })
+    return { status: 'ok', detail: `alcanzable (${Math.round(performance.now() - t0)} ms)` }
+  } catch (e) {
+    return { status: 'bad', detail: e.name === 'AbortError' ? 'sin respuesta en 7 s (¿proxy o firewall?)' : 'bloqueado o sin red' }
+  }
+}
+
+async function pipelineTest() {
+  // Tono sintético por el mismo AudioWorklet que usa la captura real. Con OfflineAudioContext no hace falta clic.
+  const ctx = new OfflineAudioContext(1, 48000, 48000)
+  const url = URL.createObjectURL(new Blob([WORKLET], { type: 'text/javascript' }))
+  try { await ctx.audioWorklet.addModule(url) } finally { URL.revokeObjectURL(url) }
+  const node = new AudioWorkletNode(ctx, 'pcm-processor')
+  let chunks = 0, peak = 0
+  node.port.onmessage = (e) => { chunks++; peak = Math.max(peak, e.data.rms) }
+  const osc = ctx.createOscillator()
+  osc.frequency.value = 440
+  osc.connect(node); node.connect(ctx.destination); osc.start()
+  await ctx.startRendering()
+  await new Promise((r) => setTimeout(r, 150))
+  if (chunks === 0) return { status: 'bad', detail: 'el worklet no devolvió audio' }
+  if (peak < 0.05) return { status: 'warn', detail: `${chunks} bloques pero señal casi nula (${peak.toFixed(3)})` }
+  return { status: 'ok', detail: `${chunks} bloques PCM de 16 kHz, nivel ${peak.toFixed(2)}` }
+}
+
+async function storageTest() {
+  localStorage.setItem('ivia-probe', '1'); localStorage.removeItem('ivia-probe')
+  await new Promise((resolve, reject) => {
+    const req = indexedDB.open('ivia-probe', 1)
+    req.onupgradeneeded = () => req.result.createObjectStore('s')
+    req.onerror = () => reject(req.error)
+    req.onsuccess = () => {
+      const db = req.result
+      const tx = db.transaction('s', 'readwrite')
+      tx.objectStore('s').put('x', 'k')
+      tx.oncomplete = () => { db.close(); indexedDB.deleteDatabase('ivia-probe'); resolve() }
+      tx.onerror = () => reject(tx.error)
+    }
+  })
+  return { detail: 'localStorage e IndexedDB funcionan' }
+}
+
+async function runAuto() {
+  $('next1').disabled = true
+  auto.clear()
+  const md = navigator.mediaDevices
+  await step('Contexto seguro (https/localhost/file)', async () =>
+    window.isSecureContext ? {} : { status: 'bad', detail: 'sin contexto seguro no hay captura de audio' })
+  await step('API de captura de pantalla/pestaña', async () =>
+    md && md.getDisplayMedia ? {} : { status: 'bad', detail: 'getDisplayMedia no existe en este navegador' })
+  await step('Política: captura de pantalla permitida', async () => {
+    const pp = document.permissionsPolicy || document.featurePolicy
+    if (!pp || !pp.allowsFeature) return { status: 'info', detail: 'no comprobable' }
+    return pp.allowsFeature('display-capture') ? {} : { status: 'bad', detail: 'bloqueada por Permissions-Policy' }
+  })
+  await step('Permiso de micrófono', async () => {
+    if (!navigator.permissions) return { status: 'info', detail: 'no comprobable' }
+    const p = await navigator.permissions.query({ name: 'microphone' })
+    return p.state === 'denied' ? { status: 'bad', detail: 'denegado en el navegador (o por política)' } : { status: 'ok', detail: p.state === 'granted' ? 'concedido' : 'se pedirá al usarlo' }
+  })
+  await step('Dispositivos de audio', async () => {
+    const list = await md.enumerateDevices()
+    const ins = list.filter((d) => d.kind === 'audioinput').length
+    const outs = list.filter((d) => d.kind === 'audiooutput').length
+    return ins ? { detail: `${ins} entrada(s), ${outs} salida(s)` } : { status: 'warn', detail: `sin micrófonos detectados (${outs} salidas)` }
+  })
+  await step('Procesado de audio (AudioWorklet + PCM 16 kHz)', pipelineTest)
+  await step('Almacenamiento local', storageTest)
+  await step('Portapapeles', async () =>
+    navigator.clipboard && navigator.clipboard.writeText ? {} : { status: 'warn', detail: 'sin API: se copiará a mano' })
+  await step('Ventana flotante (Document PiP)', async () =>
+    'documentPictureInPicture' in window ? {} : { status: 'warn', detail: 'no disponible: las sugerencias irían en la propia pestaña' })
+  await step('Equipo', async () => {
+    const mem = navigator.deviceMemory ? `${navigator.deviceMemory} GB, ` : ''
+    const gpu = navigator.gpu ? 'WebGPU sí' : 'WebGPU no'
+    return { status: 'info', detail: `${navigator.hardwareConcurrency || '?'} hilos, ${mem}WASM ${typeof WebAssembly === 'object' ? 'sí' : 'no'}, ${gpu}` }
+  })
+  await step('Salida a internet (openrouter.ai)', () => reach('https://openrouter.ai/api/v1/models'))
+  await step('Captura real de audio', async () => ({ status: 'info', detail: 'pendiente (paso 3)' }))
+  $('next1').disabled = false
+}
+
+$('rerun').onclick = runAuto
+
+// Asistente: un panel por paso.
+let current = 1
+function go(n) {
+  if (current === 3 && n !== 3) stop()
+  current = n
+  for (let i = 1; i <= 4; i++) {
+    $('p' + i).classList.toggle('show', i === n)
+    $('pg' + i).className = i < n ? 'done' : i === n ? 'now' : ''
+  }
+  if (n === 4) {
+    $('verdict2').textContent = $('verdict').textContent
+    $('verdict2').className = $('verdict').className
+    $('report').value = buildReport()
+    $('copyState').textContent = ''
+  }
+  window.scrollTo(0, 0)
+}
+$('next1').onclick = () => go(2)
+$('back2').onclick = () => go(1)
+$('next2').onclick = () => go(3)
+$('back3').onclick = () => go(2)
+$('next3').onclick = () => go(4)
+$('skip3').onclick = () => {
+  log('El usuario indica que el selector no le deja compartir audio.')
+  const cap = auto.get('Captura real de audio')
+  if (!cap || cap.status === 'info') setAuto('Captura real de audio', 'bad', 'el usuario no pudo compartir audio desde el selector')
+  go(4)
+}
+$('back4').onclick = () => go(3)
+$('again').onclick = () => { $('log').textContent = ''; runAuto(); go(1) }
+
+// Estado en vivo del paso 3.
+setInterval(() => {
+  const cap = auto.get('Captura real de audio')
+  const known = cap && cap.status !== 'info'
+  const el = $('capStatus')
+  if (state.stream && !known) { el.textContent = 'Capturando… ' + (state.chunks ? 'recibiendo audio. Déjalo unos segundos.' : 'esperando audio.'); el.className = 'status' }
+  else if (known) { el.textContent = ({ ok: 'Correcto: ', warn: 'Aviso: ', bad: 'Fallo: ' })[cap.status] + cap.detail; el.className = 'status ' + cap.status }
+  else { el.textContent = 'Aún no has empezado.'; el.className = 'status' }
+  $('next3').disabled = !known
+}, 400)
+
+staticChecks()
+listMics()
+runAuto()
+</script>
+</body>
+</html>
